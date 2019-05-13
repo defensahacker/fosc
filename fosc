@@ -1,0 +1,66 @@
+#!/bin/bash
+# Fast Port Scanner
+#
+# (c) 2018 spinfoo
+
+
+echo "fosc: Fast Port Scanner"
+
+if [ $# -ne 1 ] ; then
+	echo "Usage: $0 IP"
+	exit
+fi
+
+ip=$1
+
+if [ -z $(which us 2> /dev/null) ] ; then
+	echo "Please, install unicornscan first."
+	exit
+fi
+if [ -z $(which nmap 2> /dev/null) ] ; then
+	echo "Please, install nmap first."
+	exit
+fi
+
+echo "[*] Scanning target: $ip"
+## TCP ##
+echo "[+] TCP ports"
+tcp=""
+us -mT -I $ip:a -r 3000 -R 3 > .t3mpABC.tcp
+echo
+grep ':' .t3mpABC.tcp | cut -d':' -f2
+for p in `grep ':' .t3mpABC.tcp | cut -d':' -f2 | cut -d' ' -f1` ; do
+        if [ -e $tcp ] ; then
+                tcp="$p"
+        else
+                tcp="$tcp,$p"
+        fi
+done
+echo
+echo "TCP: $tcp"
+
+## UDP ##
+echo
+echo "[+] UDP ports"
+udp=""
+us -mU -I $ip:a -r 3000 -R 3 > .t3mpABC.udp
+echo
+grep ':' .t3mpABC.udp | cut -d':' -f2
+for p in `grep ':' .t3mpABC.udp | cut -d':' -f2 | cut -d' ' -f1` ; do
+        if [ -e $udp ] ; then
+                udp="$p"
+        else
+                udp="$udp,$p"
+        fi
+done
+echo
+echo "UDP: $udp"
+
+## NMAP ##
+echo "[+] Enumerating ports found open:"
+echo nmap -sTUV -pT:$tcp,U:$udp $ip
+nmap -sTUV -pT:$tcp,U:$udp $ip
+
+
+## EXITING ##
+rm -f .t3mpABC.tcp .t3mpABC.udp
